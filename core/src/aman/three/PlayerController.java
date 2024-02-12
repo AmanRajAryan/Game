@@ -1,7 +1,7 @@
 package aman.three;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import static java.lang.Math.atan2;
@@ -44,6 +44,12 @@ public class PlayerController {
     float previousGetX;
     float previousGetY;
     boolean cameraCanBeRotatedNow = false;
+
+    private float jumpSpeed = 5f;
+    private float jumpHeight = 5f;
+    private float jumpAcceleration = 10f;
+    Vector3 velocity = new Vector3(0, 0, 0);
+    float floatToKeepCameraPositionSameWhileJumping = 0;
 
     BitmapFont font = new BitmapFont();
     Label.LabelStyle lableStyle = new Label.LabelStyle(font, Color.BLACK);
@@ -224,38 +230,35 @@ public class PlayerController {
             rotateCamera(-deltaX);
         }
 
-        Vector3 tmpJumpHelper = new Vector3();
-        playerScene.modelInstance.transform.getTranslation(tmpJumpHelper);
-        float maxJumpLimit = 5;
-
-        // jumping
         // jumping
         if (mainGameClass.isJumping) {
-            if (tmpJumpHelper.y <= maxJumpLimit) {
-                // playerScene.modelInstance.transform.getTranslation(tmpJumpHelper);
-                if (tmpJumpHelper.y >= 5) {
-                    maxJumpLimit = 0;
-                    Gdx.input.vibrate(100);
-                }
-                moveTranslation.y += 2 * deltaTime;
-            }
 
-            if (maxJumpLimit == 0) {
-                if (tmpJumpHelper.y > 0) {
-                    moveTranslation.y -= 3 * deltaTime;
-                    
-                    if(tmpJumpHelper.y == 0) {
-                    	mainGameClass.isJumping = false;
-                    }
+            if (mainGameClass.isJumpGoingUp) {
+                // Accelerate upward until reaching the jump height
+                if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y
+                        < jumpHeight) {
+                    velocity.y += jumpAcceleration * deltaTime;
+                    floatToKeepCameraPositionSameWhileJumping -= jumpAcceleration * deltaTime;
+                } else {
+                    mainGameClass.isJumpGoingUp = false;
                 }
+            } else {
+                // Decelerate downward after reaching the jump height
+                velocity.y -= jumpAcceleration * deltaTime;
+                floatToKeepCameraPositionSameWhileJumping += jumpAcceleration * deltaTime;
             }
         }
+
+        // Update position based on velocity
+        moveTranslation.add(velocity.cpy().scl(deltaTime));
 
         isJumpingLabel.setText(
                 "isJumping Variable is : " + String.valueOf(mainGameClass.isJumping));
         playerYLabel.setText(
                 "playerScene.modelInstance.transform.getTranslation(new Vector3()).y) : "
-                        + String.valueOf(tmpJumpHelper.y));
+                        + String.valueOf(
+                                playerScene.modelInstance.transform.getTranslation(new Vector3())
+                                        .y));
 
         // Apply the move translation to the transform
         playerTransform.translate(moveTranslation);
@@ -268,6 +271,17 @@ public class PlayerController {
 
         // Clear the move translation out
         moveTranslation.set(0, 0, 0);
+
+        // Check if the player collides with the ground
+        if (mainGameClass.isJumping) {
+            if (currentPosition.y < 0) {
+                playerTransform.translate(0, -currentPosition.y, 0);
+                playerScene.modelInstance.transform.set(playerTransform);
+                playerScene.modelInstance.transform.getTranslation(currentPosition);
+                velocity.y = 0;
+                mainGameClass.isJumping = false;
+            }
+        }
     }
 
     public void updateCamera() {
@@ -291,7 +305,23 @@ public class PlayerController {
 
         camera.position.x = currentPosition.x - offsetX;
         camera.position.z = currentPosition.z - offsetZ;
-        camera.position.y = currentPosition.y + vertDistance;
+        if (mainGameClass.isJumping) {
+            if (mainGameClass.isJumpGoingUp) {
+                camera.position.y =
+                        currentPosition.y
+                                + vertDistance
+                                - playerScene.modelInstance.transform.getTranslation(new Vector3())
+                                        .y;
+            } else {
+                camera.position.y =
+                        currentPosition.y
+                                + vertDistance
+                                + playerScene.modelInstance.transform.getTranslation(new Vector3())
+                                        .y;
+            }
+        } else {
+            camera.position.y = currentPosition.y + vertDistance;
+        }
     }
 
     public void rotateCamera(float angle) {

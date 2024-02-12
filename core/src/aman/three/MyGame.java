@@ -53,7 +53,7 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
     boolean sprinting = false;
     boolean isWalking = false;
     boolean isJumping = false;
-    boolean isJumpingAnimationInProgress = false;
+    boolean isJumpGoingUp = false;
 
     // player controller
     PlayerController playerController;
@@ -167,12 +167,12 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
         stage.act(deltaTime);
         stage.draw();
 
-        if (isWalking) {
-            playerScene.animationController.animate("Walk", -1);
+        if (isJumping) {
+            playerScene.animationController.animate("Jump", -1);
         } else if (sprinting) {
             playerScene.animationController.animate("Run", -1);
-        } else if(isJumpingAnimationInProgress) {
-        	playerScene.animationController.animate("Jump" , -1);
+        } else if(isWalking) {
+        	playerScene.animationController.animate("Walk" , -1);
         }
         
        
