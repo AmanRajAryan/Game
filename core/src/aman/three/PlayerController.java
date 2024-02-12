@@ -242,9 +242,11 @@ public class PlayerController {
             // Check if the player is back to the ground
             if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y < 0) {
 
-                moveTranslation.y = 0;
+                
 
                 mainGameClass.isJumping = false;
+                
+                moveTranslation.y = 0;
 
                 velocity.y = 0;
             }
