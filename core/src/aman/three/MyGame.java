@@ -54,6 +54,7 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
     boolean isWalking = false;
     boolean isJumping = false;
     boolean isJumpGoingUp = false;
+    boolean isPlayerFalling = false;
 
     // player controller
     PlayerController playerController;

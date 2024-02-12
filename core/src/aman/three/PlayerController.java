@@ -46,8 +46,8 @@ public class PlayerController {
     boolean cameraCanBeRotatedNow = false;
 
     private float jumpSpeed = 5f;
-    private float jumpHeight = 5f;
-    private float jumpAcceleration = 10f;
+    private float jumpHeight = 2f;
+    private float jumpAcceleration = 30f;
     Vector3 velocity = new Vector3(0, 0, 0);
     float floatToKeepCameraPositionSameWhileJumping = 0;
 
@@ -291,11 +291,23 @@ public class PlayerController {
         calculatePitch();
         calculateCameraPosition(currentPosition, -horDistance, vertDistance);
         camera.up.set(Vector3.Y);
-        camera.lookAt(
+        if(mainGameClass.isPlayerFalling) {
+        	camera.lookAt(
                 currentPosition.x,
                 currentPosition.y + floatToCalculateCameraRotation * 1.2f,
                 currentPosition.z);
+        }else{
+            camera.lookAt(
+                currentPosition.x,
+                getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x , currentPosition.z) + floatToCalculateCameraRotation * 1.2f,
+                currentPosition.z);
+            }
         camera.update();
+            
+    }
+    
+    public float getGroundOrTerrainYPositionAtPlayerLocation(float x , float z){
+        return 0;
     }
 
     private void calculateCameraPosition(
@@ -305,23 +317,7 @@ public class PlayerController {
 
         camera.position.x = currentPosition.x - offsetX;
         camera.position.z = currentPosition.z - offsetZ;
-        if (mainGameClass.isJumping) {
-            if (mainGameClass.isJumpGoingUp) {
-                camera.position.y =
-                        currentPosition.y
-                                + vertDistance
-                                - playerScene.modelInstance.transform.getTranslation(new Vector3())
-                                        .y;
-            } else {
-                camera.position.y =
-                        currentPosition.y
-                                + vertDistance
-                                + playerScene.modelInstance.transform.getTranslation(new Vector3())
-                                        .y;
-            }
-        } else {
-            camera.position.y = currentPosition.y + vertDistance;
-        }
+        camera.position.y = getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x , currentPosition.z) + vertDistance;
     }
 
     public void rotateCamera(float angle) {
@@ -339,14 +335,7 @@ public class PlayerController {
 
     public void rotatePlayerInCamDirection(Float rapidRotationMax) {
 
-        // playerTransform.rotate(Vector3.Y , camera.direction);
-        // Erkka: this is what you had. I try to simplify the problem:
-        // suppose camera.direction is 270 degrees
-        // playerTransfrom.rotate would then turn the player 270 degrees
-        // and the next time this is run, it would again turn the player 270 degrees
-        // so, playerTransfrom.rotate is not "rotate to given angle" but "rotate by given angle"
-        // and then it gets more complicated, since I think camera.direction has the angles for X,Y
-        // and Z axises
+        
 
         // we get the difference between camera angle and the angle behind the player
         float diff = angleAroundPlayer - angleBehindPlayer;
