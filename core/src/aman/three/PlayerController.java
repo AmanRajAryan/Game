@@ -243,6 +243,10 @@ public class PlayerController {
             if (maxJumpLimit == 0) {
                 if (tmpJumpHelper.y > 0) {
                     moveTranslation.y -= 3 * deltaTime;
+                    
+                    if(tmpJumpHelper.y == 0) {
+                    	mainGameClass.isJumping = false;
+                    }
                 }
             }
         }
