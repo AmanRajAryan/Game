@@ -46,7 +46,6 @@ public class HUD {
 
         BitmapFont font = new BitmapFont();
         Label.LabelStyle lableStyle = new Label.LabelStyle(font, Color.BLACK);
-        
 
         sprintBtn.addListener(
                 new InputListener() {
@@ -78,11 +77,13 @@ public class HUD {
                     @Override
                     public boolean touchDown(
                             InputEvent event, float x, float y, int pointer, int button) {
+
                         if (GAME.isJumping == false) {
+                           
                             GAME.isJumping = true;
                         }
                         event.handle();
-                        
+
                         return true;
                     }
                 });

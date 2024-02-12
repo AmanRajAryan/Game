@@ -234,6 +234,7 @@ public class PlayerController {
             // Accelerate upward until reaching the jump height
             if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y < jumpHeight) {
                 velocity.y += jumpAcceleration * deltaTime;
+                 
             } else {
                 // Decelerate downward after reaching the jump height
                 velocity.y -= jumpAcceleration * deltaTime;
@@ -242,7 +243,7 @@ public class PlayerController {
             // Check if the player is back to the ground
             if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y < 0) {
 
-                
+                Gdx.input.vibrate(100);
 
                 mainGameClass.isJumping = false;
                 
