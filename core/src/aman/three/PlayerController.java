@@ -45,8 +45,8 @@ public class PlayerController {
     boolean cameraCanBeRotatedNow = false;
 
     private float jumpSpeed = 5f;
-    private float jumpHeight = 2f;
-    private float jumpAcceleration = 20f;
+    private float jumpHeight = 3f;
+    private float jumpAcceleration = 25f;
     Vector3 velocity = new Vector3(0, 0, 0);
 
     BitmapFont font = new BitmapFont();
@@ -71,7 +71,7 @@ public class PlayerController {
         touchpad = mainGameClass.touchpad;
 
         isJumpingLabel.setFontScale(2);
-        isJumpingLabel.setPosition(30, 700);
+        isJumpingLabel.setPosition(30, 680);
         stage.addActor(isJumpingLabel);
 
         playerYLabel.setFontScale(2);
@@ -242,22 +242,22 @@ public class PlayerController {
 
             // Check if the player is back to the ground
             if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y < 0) {
-
+                velocity.y = 0;
                 Gdx.input.vibrate(100);
 
                 mainGameClass.isJumping = false;
                 
                 moveTranslation.y = 0;
 
-                velocity.y = 0;
+                
             }
         }
 
         // Update position based on velocity
         moveTranslation.add(velocity.cpy().scl(deltaTime));
 
-        isJumpingLabel.setText(String.valueOf(mainGameClass.isJumping));
-        playerYLabel.setText(
+        isJumpingLabel.setText("isJumping Variable is : " + String.valueOf(mainGameClass.isJumping));
+        playerYLabel.setText("playerScene.modelInstance.transform.getTranslation(new Vector3()).y) : " + 
                 String.valueOf(
                         playerScene.modelInstance.transform.getTranslation(new Vector3()).y));
 
