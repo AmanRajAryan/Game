@@ -53,6 +53,7 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
     boolean sprinting = false;
     boolean isWalking = false;
     boolean isJumping = false;
+    boolean isJumpingAnimationInProgress = false;
 
     // player controller
     PlayerController playerController;
@@ -170,7 +171,7 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
             playerScene.animationController.animate("Walk", -1);
         } else if (sprinting) {
             playerScene.animationController.animate("Run", -1);
-        } else if(isJumping) {
+        } else if(isJumpingAnimationInProgress) {
         	playerScene.animationController.animate("Jump" , -1);
         }
         

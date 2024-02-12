@@ -1,6 +1,7 @@
 package aman.three;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import static java.lang.Math.atan2;
@@ -43,11 +44,6 @@ public class PlayerController {
     float previousGetX;
     float previousGetY;
     boolean cameraCanBeRotatedNow = false;
-
-    private float jumpSpeed = 5f;
-    private float jumpHeight = 3f;
-    private float jumpAcceleration = 25f;
-    Vector3 velocity = new Vector3(0, 0, 0);
 
     BitmapFont font = new BitmapFont();
     Label.LabelStyle lableStyle = new Label.LabelStyle(font, Color.BLACK);
@@ -228,38 +224,34 @@ public class PlayerController {
             rotateCamera(-deltaX);
         }
 
+        Vector3 tmpJumpHelper = new Vector3();
+        playerScene.modelInstance.transform.getTranslation(tmpJumpHelper);
+        float maxJumpLimit = 5;
+
+        // jumping
         // jumping
         if (mainGameClass.isJumping) {
-
-            // Accelerate upward until reaching the jump height
-            if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y < jumpHeight) {
-                velocity.y += jumpAcceleration * deltaTime;
-                 
-            } else {
-                // Decelerate downward after reaching the jump height
-                velocity.y -= jumpAcceleration * deltaTime;
+            if (tmpJumpHelper.y <= maxJumpLimit) {
+                // playerScene.modelInstance.transform.getTranslation(tmpJumpHelper);
+                if (tmpJumpHelper.y >= 5) {
+                    maxJumpLimit = 0;
+                    Gdx.input.vibrate(100);
+                }
+                moveTranslation.y += 2 * deltaTime;
             }
 
-            // Check if the player is back to the ground
-            if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y < 0) {
-                velocity.y = 0;
-                Gdx.input.vibrate(100);
-
-                mainGameClass.isJumping = false;
-                
-                moveTranslation.y = 0;
-
-                
+            if (maxJumpLimit == 0) {
+                if (tmpJumpHelper.y > 0) {
+                    moveTranslation.y -= 3 * deltaTime;
+                }
             }
         }
 
-        // Update position based on velocity
-        moveTranslation.add(velocity.cpy().scl(deltaTime));
-
-        isJumpingLabel.setText("isJumping Variable is : " + String.valueOf(mainGameClass.isJumping));
-        playerYLabel.setText("playerScene.modelInstance.transform.getTranslation(new Vector3()).y) : " + 
-                String.valueOf(
-                        playerScene.modelInstance.transform.getTranslation(new Vector3()).y));
+        isJumpingLabel.setText(
+                "isJumping Variable is : " + String.valueOf(mainGameClass.isJumping));
+        playerYLabel.setText(
+                "playerScene.modelInstance.transform.getTranslation(new Vector3()).y) : "
+                        + String.valueOf(tmpJumpHelper.y));
 
         // Apply the move translation to the transform
         playerTransform.translate(moveTranslation);

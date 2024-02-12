@@ -81,6 +81,7 @@ public class HUD {
                         if (GAME.isJumping == false) {
                            
                             GAME.isJumping = true;
+                        GAME.isJumpingAnimationInProgress = true;
                         }
                         event.handle();
 
