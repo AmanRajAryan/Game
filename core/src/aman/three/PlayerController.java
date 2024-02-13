@@ -25,8 +25,8 @@ public class PlayerController {
     private final Vector3 currentPosition = new Vector3();
 
     private float camPitch = Settings.CAMERA_START_PITCH;
-    float floatToCalculateCameraRotation = 0f;
-    float extraVerticalDistance = 15;
+    float floatToCalculateCameraLookAtWhileTryingToSeeInSky = 0f;
+    float extraVerticalDistance = 30;
     public float distanceFromPlayer = 20f;
     private float angleAroundPlayer = 0f;
     private float angleBehindPlayer = 0f;
@@ -195,6 +195,8 @@ public class PlayerController {
 
             if (deltaX != 0) {
                 if (mainGameClass.sprinting) {
+                    // prevent player from rotating if player is jumping
+                    if (!mainGameClass.isJumping)
                     rotatePlayer(-deltaX);
                 }
 
@@ -219,15 +221,16 @@ public class PlayerController {
             if (Gdx.input.getX() > Gdx.graphics.getWidth() / 2) {
                 cameraCanBeRotatedNow = true;
             } else {
+
                 rotateCamera(-Gdx.input.getDeltaX(1));
             }
 
             if (cameraCanBeRotatedNow) {
-                rotateCamera(-deltaX);
+                 rotateCamera(-deltaX);
             }
 
         } else {
-            rotateCamera(-deltaX);
+             rotateCamera(-deltaX);
         }
 
         // jumping
@@ -275,9 +278,12 @@ public class PlayerController {
         // Check if the player collides with the ground
         if (mainGameClass.isJumping) {
             if (currentPosition.y < 0) {
+                // rotate player in cameea direction because we've prevented player from rotating while jumping
+                rotatePlayerInCamDirection(null);
                 playerTransform.translate(0, -currentPosition.y, 0);
                 playerScene.modelInstance.transform.set(playerTransform);
                 playerScene.modelInstance.transform.getTranslation(currentPosition);
+                
                 velocity.y = 0;
                 mainGameClass.isJumping = false;
             }
@@ -291,22 +297,23 @@ public class PlayerController {
         calculatePitch();
         calculateCameraPosition(currentPosition, -horDistance, vertDistance);
         camera.up.set(Vector3.Y);
-        if(mainGameClass.isPlayerFalling) {
-        	camera.lookAt(
-                currentPosition.x,
-                currentPosition.y + floatToCalculateCameraRotation * 1.2f,
-                currentPosition.z);
-        }else{
+        if (mainGameClass.isPlayerFalling) {
             camera.lookAt(
-                currentPosition.x,
-                getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x , currentPosition.z) + floatToCalculateCameraRotation * 1.2f,
-                currentPosition.z);
-            }
+                    currentPosition.x,
+                    currentPosition.y + floatToCalculateCameraLookAtWhileTryingToSeeInSky * 1.2f,
+                    currentPosition.z);
+        } else {
+            camera.lookAt(
+                    currentPosition.x,
+                    getGroundOrTerrainYPositionAtPlayerLocation(
+                                    currentPosition.x, currentPosition.z)
+                            + floatToCalculateCameraLookAtWhileTryingToSeeInSky * 1.2f,
+                    currentPosition.z);
+        }
         camera.update();
-            
     }
-    
-    public float getGroundOrTerrainYPositionAtPlayerLocation(float x , float z){
+
+    public float getGroundOrTerrainYPositionAtPlayerLocation(float x, float z) {
         return 0;
     }
 
@@ -317,7 +324,9 @@ public class PlayerController {
 
         camera.position.x = currentPosition.x - offsetX;
         camera.position.z = currentPosition.z - offsetZ;
-        camera.position.y = getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x , currentPosition.z) + vertDistance;
+        camera.position.y =
+                getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x, currentPosition.z)
+                        + vertDistance;
     }
 
     public void rotateCamera(float angle) {
@@ -334,8 +343,6 @@ public class PlayerController {
     }
 
     public void rotatePlayerInCamDirection(Float rapidRotationMax) {
-
-        
 
         // we get the difference between camera angle and the angle behind the player
         float diff = angleAroundPlayer - angleBehindPlayer;
@@ -379,7 +386,8 @@ public class PlayerController {
         float pitchChange = 0;
 
         floatToCalculateCamRotationLabel.setText(
-                "floatToCalculateCameraRotation : " + floatToCalculateCameraRotation);
+                "floatToCalculateCameraLookAtWhileTryingToSeeInSky : "
+                        + floatToCalculateCameraLookAtWhileTryingToSeeInSky);
 
         if (Gdx.input.isTouched(0)) {
             if (Gdx.input.getX(0) > Gdx.graphics.getWidth() / 2) {
@@ -388,8 +396,8 @@ public class PlayerController {
 
                 // touch drag is downward
                 if (Gdx.input.getDeltaY(0) > 0) {
-                    if (floatToCalculateCameraRotation > 0) {
-                        floatToCalculateCameraRotation += pitchChange;
+                    if (floatToCalculateCameraLookAtWhileTryingToSeeInSky > 0) {
+                        floatToCalculateCameraLookAtWhileTryingToSeeInSky += pitchChange;
                         distanceFromPlayer -= pitchChange * 0.5;
                         extraVerticalDistance -= pitchChange * 2.5;
                     }
@@ -403,8 +411,8 @@ public class PlayerController {
 
                 // touch drag is downward
                 if (Gdx.input.getDeltaY(1) > 0) {
-                    if (floatToCalculateCameraRotation > 0) {
-                        floatToCalculateCameraRotation += pitchChange;
+                    if (floatToCalculateCameraLookAtWhileTryingToSeeInSky > 0) {
+                        floatToCalculateCameraLookAtWhileTryingToSeeInSky += pitchChange;
                         distanceFromPlayer -= pitchChange * 0.5;
                         extraVerticalDistance -= pitchChange * 2.5;
                     }
@@ -418,8 +426,8 @@ public class PlayerController {
         if (camPitch < Settings.CAMERA_MIN_PITCH) {
             camPitch = Settings.CAMERA_MIN_PITCH;
 
-            if (floatToCalculateCameraRotation < 10) {
-                floatToCalculateCameraRotation += pitchChange;
+            if (floatToCalculateCameraLookAtWhileTryingToSeeInSky < 10) {
+                floatToCalculateCameraLookAtWhileTryingToSeeInSky += pitchChange;
                 distanceFromPlayer -= pitchChange * 0.5;
                 extraVerticalDistance -= pitchChange * 2.5;
             }

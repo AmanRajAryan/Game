@@ -19,6 +19,7 @@ public class HUD {
 
     ImageButton sprintBtn;
     ImageButton jumpBtn;
+    ImageButton crouchBtn;
 
     public void initializeHUD(MyGame GAME, Stage stage) {
 
@@ -41,8 +42,20 @@ public class HUD {
         jumpBtn = new ImageButton(jumpBtnStyle);
         jumpBtn.setWidth(150f);
         jumpBtn.setHeight(150f);
-        jumpBtn.setPosition(Gdx.graphics.getWidth() - 170f, 300f);
+        jumpBtn.setPosition(Gdx.graphics.getWidth() - 170f, 350f);
         stage.addActor(jumpBtn);
+        
+        
+        // Jump Button
+        Texture crouchBtnTexture = new Texture(Gdx.files.internal("crouch.png"));
+        ImageButton.ImageButtonStyle crouchBtnStyle = new ImageButton.ImageButtonStyle();
+        crouchBtnStyle.up = new TextureRegionDrawable(crouchBtnTexture);
+        crouchBtn = new ImageButton(crouchBtnStyle);
+        crouchBtn.setWidth(150f);
+        crouchBtn.setHeight(150f);
+        crouchBtn.setPosition(Gdx.graphics.getWidth() - 170f, 150f);
+        stage.addActor(crouchBtn);
+        
 
         BitmapFont font = new BitmapFont();
         Label.LabelStyle lableStyle = new Label.LabelStyle(font, Color.BLACK);
@@ -61,6 +74,7 @@ public class HUD {
                         } else {
                             GAME.isSprintBtnJustClicked = true;
                             GAME.sprinting = true;
+                        GAME.isPlayerInCrouchPosition = false;
                         }
                         event.stop();
 
@@ -79,7 +93,7 @@ public class HUD {
                             InputEvent event, float x, float y, int pointer, int button) {
 
                         if (GAME.isJumping == false) {
-                           
+                           GAME.isPlayerInCrouchPosition = false;
                             GAME.isJumping = true;
                         GAME.isJumpGoingUp = true;
                         
@@ -89,5 +103,34 @@ public class HUD {
                         return true;
                     }
                 });
+        
+        
+        crouchBtn.addListener(
+                new InputListener() {
+                    @Override
+                    public void touchUp(
+                            InputEvent event, float x, float y, int pointer, int button) {}
+
+                    @Override
+                    public boolean touchDown(
+                            InputEvent event, float x, float y, int pointer, int button) {
+
+                        if (GAME.isPlayerInCrouchPosition == false) {
+                           
+                            GAME.isPlayerInCrouchPosition = true;
+                        GAME.sprinting = false;
+                    //        GAME.isJumping = false;
+                        
+                        }else{
+                            GAME.isPlayerInCrouchPosition = false;
+                        }
+                        event.handle();
+
+                        return true;
+                    }
+                });
+        
+        
+        
     }
 }

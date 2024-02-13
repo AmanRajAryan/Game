@@ -1,6 +1,5 @@
 package aman.three;
 
-import aman.three.HUD;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -49,12 +48,12 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
 
     // Player Movement
     boolean isSprintBtnJustClicked = false;
-    boolean isJumpBtnJustClicked = false;
     boolean sprinting = false;
     boolean isWalking = false;
     boolean isJumping = false;
     boolean isJumpGoingUp = false;
     boolean isPlayerFalling = false;
+    boolean isPlayerInCrouchPosition = false;
 
     // player controller
     PlayerController playerController;
@@ -169,11 +168,13 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
         stage.draw();
 
         if (isJumping) {
-            playerScene.animationController.animate("Jump", -1);
+            playerScene.animationController.animate("Jump",0.5f);
         } else if (sprinting) {
-            playerScene.animationController.animate("Run", -1);
+            playerScene.animationController.animate("Run", 0.5f);
         } else if(isWalking) {
-        	playerScene.animationController.animate("Walk" , -1);
+        	playerScene.animationController.animate("Walk" ,0.5f);
+        }else if(isPlayerInCrouchPosition) {
+        	playerScene.animationController.animate("SitDown" , 0.5f);
         }
         
        
