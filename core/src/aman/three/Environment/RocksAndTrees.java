@@ -4,6 +4,7 @@ import aman.three.terrains.Terrain;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.maps.Map;
 import com.badlogic.gdx.math.MathUtils;
 import net.mgsx.gltf.loaders.glb.GLBLoader;
 import net.mgsx.gltf.scene3d.scene.Scene;
@@ -26,29 +27,27 @@ public class RocksAndTrees {
         int i = 0;
         while (i < 100) {
             i++;
-            if (i < 50) {
-
-                createTreeOrRock("rock1", randomPos(), randomPos(), rockRandomScale());
-                createTreeOrRock("rock2", randomPos(), randomPos(), rockRandomScale());
-                createTreeOrRock("rock3", randomPos(), randomPos(), rockRandomScale());
-            }
-            createTreeOrRock("grass1", randomPos(), randomPos(), bushRandomScale());
-            createTreeOrRock("grass1", randomPos(), randomPos(), bushRandomScale());
-            createTreeOrRock("grass1", randomPos(), randomPos(), bushRandomScale());
-
-            if (i < 70) {
-
-                createTreeOrRock("bush1", randomPos(), randomPos(), bushRandomScale());
-                createTreeOrRock("bush2", randomPos(), randomPos(), bushRandomScale());
-                createTreeOrRock("bush2", randomPos(), randomPos(), bushRandomScale());
-            }
-            if (i < 30) {
-
-                createTreeOrRock("tree1", randomPos(), randomPos(), treeRandomScale());
-                createTreeOrRock("tree2", randomPos(), randomPos(), treeRandomScale());
-                createTreeOrRock("tree3", randomPos(), randomPos(), treeRandomScale());
-                createTreeOrRock("tree4", randomPos(), randomPos(), treeRandomScale());
-            }
+//            if (i < 50) {
+//                createTreeOrRock("rock1", randomPos(), randomPos(), rockRandomScale());
+//                createTreeOrRock("rock2", randomPos(), randomPos(), rockRandomScale());
+//                createTreeOrRock("rock3", randomPos(), randomPos(), rockRandomScale());
+//            }
+//            createTreeOrRock("grass1", randomPos(), randomPos(), bushRandomScale());
+//            createTreeOrRock("grass1", randomPos(), randomPos(), bushRandomScale());
+//            createTreeOrRock("grass1", randomPos(), randomPos(), bushRandomScale());
+//
+//            if (i < 70) {
+//
+//                createTreeOrRock("bush1", randomPos(), randomPos(), bushRandomScale());
+//                createTreeOrRock("bush2", randomPos(), randomPos(), bushRandomScale());
+//                createTreeOrRock("bush2", randomPos(), randomPos(), bushRandomScale());
+//            }
+//            if (i < 30) {
+//                createTreeOrRock("tree1", randomPos(), randomPos(), treeRandomScale());
+//                createTreeOrRock("tree2", randomPos(), randomPos(), treeRandomScale());
+//                createTreeOrRock("tree3", randomPos(), randomPos(), treeRandomScale());
+//                createTreeOrRock("tree4", randomPos(), randomPos(), treeRandomScale());
+//            }
         }
     }
 

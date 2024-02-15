@@ -45,6 +45,7 @@ public class PlayerController {
     float previousGetX;
     float previousGetY;
     boolean cameraCanBeRotatedNow = false;
+    float height;
 
     private float jumpSpeed = 5f;
     private float jumpHeight = 2f;
@@ -72,7 +73,6 @@ public class PlayerController {
         camera = mainGameClass.camera;
         playerScene = mainGameClass.playerScene;
         touchpad = mainGameClass.touchpad;
-
         isJumpingLabel.setFontScale(2);
         isJumpingLabel.setPosition(30, 680);
         stage.addActor(isJumpingLabel);
@@ -283,12 +283,15 @@ public class PlayerController {
         // Update vector position
         playerScene.modelInstance.transform.getTranslation(currentPosition);
 
-        float height =
-                getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x, currentPosition.z);
+        
+            height =
+                    getGroundOrTerrainYPositionAtPlayerLocation(
+                            currentPosition.x, currentPosition.z);
+        
 
         if (!mainGameClass.isJumping) {
 
-            currentPosition.y = height;
+            if (currentPosition.y != height) currentPosition.y = height;
         }
 
         // Apply terrain height to the slime
@@ -339,9 +342,7 @@ public class PlayerController {
         } else {
             camera.lookAt(
                     currentPosition.x,
-                    getGroundOrTerrainYPositionAtPlayerLocation(
-                                    currentPosition.x, currentPosition.z)
-                            + floatToCalculateCameraLookAtWhileTryingToSeeInSky * 1.2f,
+                    height + floatToCalculateCameraLookAtWhileTryingToSeeInSky * 1.2f,
                     currentPosition.z);
         }
         camera.update();
@@ -358,9 +359,7 @@ public class PlayerController {
 
         camera.position.x = currentPosition.x - offsetX;
         camera.position.z = currentPosition.z - offsetZ;
-        camera.position.y =
-                getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x, currentPosition.z)
-                        + vertDistance;
+        camera.position.y = height + vertDistance;
     }
 
     public void rotateCamera(float angle) {

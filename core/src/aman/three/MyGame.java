@@ -203,11 +203,6 @@ public class MyGame extends ApplicationAdapter {
     }
 
     private void createTerrain() {
-        if (terrain != null) {
-            terrain.dispose();
-            sceneManager.removeScene(terrainScene);
-        }
-
         terrain =
                 new HeightMapTerrain(
                         new Pixmap(Gdx.files.internal("textures/heightmap.png")),
