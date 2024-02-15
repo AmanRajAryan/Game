@@ -40,13 +40,13 @@ public class HeightMapTerrain extends Terrain {
         
         
 
-        Texture texture = new Texture(Gdx.files.internal("textures/sand-dunes1_albedo.png"), true);
-        texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.MipMapLinearLinear);
+        Texture texture = new Texture(Gdx.files.internal("textures/leafy_grass_diff_1k.jpg"), true);
+        texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         PBRTextureAttribute textureAttribute = PBRTextureAttribute.createBaseColorTexture(texture);
-        textureAttribute.scaleU = 40f;
-        textureAttribute.scaleV = 40f;
+        textureAttribute.scaleU = 50f;
+        textureAttribute.scaleV = 50f ;
 
         Material material = new Material();
         material.set(textureAttribute);
