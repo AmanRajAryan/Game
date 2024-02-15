@@ -1,5 +1,6 @@
 package aman.three;
 
+import aman.three.terrains.Terrain;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -49,7 +50,6 @@ public class PlayerController {
     private float jumpHeight = 2f;
     private float jumpAcceleration = 30f;
     Vector3 velocity = new Vector3(0, 0, 0);
-    float floatToKeepCameraPositionSameWhileJumping = 0;
 
     BitmapFont font = new BitmapFont();
     Label.LabelStyle lableStyle = new Label.LabelStyle(font, Color.BLACK);
@@ -64,6 +64,7 @@ public class PlayerController {
     Label pitchChangeLabel = new Label("Label", lableStyle);
     Label isJumpingLabel = new Label("Label", lableStyle);
     Label playerYLabel = new Label("Label", lableStyle);
+    Label jumpHeightLabel = new Label("Label", lableStyle);
 
     public void createContoller(MyGame game) {
         this.mainGameClass = game;
@@ -79,6 +80,10 @@ public class PlayerController {
         playerYLabel.setFontScale(2);
         playerYLabel.setPosition(30, 650);
         stage.addActor(playerYLabel);
+
+        jumpHeightLabel.setFontScale(2);
+        jumpHeightLabel.setPosition(30, 620);
+        stage.addActor(jumpHeightLabel);
 
         getXLabel.setFontScale(2);
         getXLabel.setPosition(30, 700);
@@ -196,8 +201,7 @@ public class PlayerController {
             if (deltaX != 0) {
                 if (mainGameClass.sprinting) {
                     // prevent player from rotating if player is jumping
-                    if (!mainGameClass.isJumping)
-                    rotatePlayer(-deltaX);
+                    if (!mainGameClass.isJumping) rotatePlayer(-deltaX);
                 }
 
                 // if in sprint mode, we rotate both the player and the camera
@@ -226,14 +230,22 @@ public class PlayerController {
             }
 
             if (cameraCanBeRotatedNow) {
-                 rotateCamera(-deltaX);
+                rotateCamera(-deltaX);
             }
 
         } else {
-             rotateCamera(-deltaX);
+            rotateCamera(-deltaX);
         }
 
         // jumping
+        if (!mainGameClass.isJumping) {
+            jumpHeight =
+                    getGroundOrTerrainYPositionAtPlayerLocation(
+                                    currentPosition.x, currentPosition.z)
+                            + 2;
+        }
+
+        jumpHeightLabel.setText(String.valueOf(jumpHeight));
         if (mainGameClass.isJumping) {
 
             if (mainGameClass.isJumpGoingUp) {
@@ -241,14 +253,13 @@ public class PlayerController {
                 if (playerScene.modelInstance.transform.getTranslation(new Vector3()).y
                         < jumpHeight) {
                     velocity.y += jumpAcceleration * deltaTime;
-                    floatToKeepCameraPositionSameWhileJumping -= jumpAcceleration * deltaTime;
+
                 } else {
                     mainGameClass.isJumpGoingUp = false;
                 }
             } else {
                 // Decelerate downward after reaching the jump height
                 velocity.y -= jumpAcceleration * deltaTime;
-                floatToKeepCameraPositionSameWhileJumping += jumpAcceleration * deltaTime;
             }
         }
 
@@ -272,20 +283,36 @@ public class PlayerController {
         // Update vector position
         playerScene.modelInstance.transform.getTranslation(currentPosition);
 
+        float height =
+                getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x, currentPosition.z);
+
+        if (!mainGameClass.isJumping) {
+
+            currentPosition.y = height;
+        }
+
+        // Apply terrain height to the slime
+        playerScene.modelInstance.transform.setTranslation(currentPosition);
+
         // Clear the move translation out
         moveTranslation.set(0, 0, 0);
 
         // Check if the player collides with the ground
         if (mainGameClass.isJumping) {
-            if (currentPosition.y < 0) {
-                // rotate player in cameea direction because we've prevented player from rotating while jumping
-                rotatePlayerInCamDirection(null);
-                playerTransform.translate(0, -currentPosition.y, 0);
-                playerScene.modelInstance.transform.set(playerTransform);
-                playerScene.modelInstance.transform.getTranslation(currentPosition);
-                
-                velocity.y = 0;
-                mainGameClass.isJumping = false;
+            if (mainGameClass.isJumpGoingUp == false) {
+                if (currentPosition.y
+                        <= getGroundOrTerrainYPositionAtPlayerLocation(
+                                currentPosition.x, currentPosition.z)) {
+                    // rotate player in camera direction because we've prevented player from
+                    // rotating while jumping
+                    rotatePlayerInCamDirection(null);
+
+                    playerScene.modelInstance.transform.set(playerTransform);
+                    playerScene.modelInstance.transform.getTranslation(currentPosition);
+
+                    velocity.y = 0;
+                    mainGameClass.isJumping = false;
+                }
             }
         }
     }
@@ -296,6 +323,13 @@ public class PlayerController {
 
         calculatePitch();
         calculateCameraPosition(currentPosition, -horDistance, vertDistance);
+
+        float height =
+                mainGameClass.terrain.getHeightAtWorldCoord(camera.position.x, camera.position.z);
+        if (camera.position.y < height + 5f) {
+            camera.position.y = height + 5f;
+        }
+
         camera.up.set(Vector3.Y);
         if (mainGameClass.isPlayerFalling) {
             camera.lookAt(
@@ -314,7 +348,7 @@ public class PlayerController {
     }
 
     public float getGroundOrTerrainYPositionAtPlayerLocation(float x, float z) {
-        return 0;
+        return mainGameClass.terrain.getHeightAtWorldCoord(x, z);
     }
 
     private void calculateCameraPosition(

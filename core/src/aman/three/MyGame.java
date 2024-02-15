@@ -1,6 +1,9 @@
 package aman.three;
 
 
+import aman.three.Environment.RocksAndTrees;
+import aman.three.terrains.HeightMapTerrain;
+import aman.three.terrains.Terrain;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -8,20 +11,14 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.shaders.DepthShader;
-import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import net.mgsx.gltf.loaders.gltf.GLTFLoader;
-import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute;
 import net.mgsx.gltf.scene3d.lights.DirectionalLightEx;
@@ -33,7 +30,7 @@ import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 import net.mgsx.gltf.scene3d.utils.IBLBuilder;
 
-public class MyGame extends ApplicationAdapter implements AnimationController.AnimationListener {
+public class MyGame extends ApplicationAdapter {
     private SceneManager sceneManager;
     private SceneAsset sceneAsset;
     public Scene playerScene;
@@ -45,6 +42,9 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
     private float time;
     private SceneSkybox skybox;
     private DirectionalLightEx light;
+    Terrain terrain;
+    Scene terrainScene;
+    RocksAndTrees rocksAndTreesGenerator;
 
     // Player Movement
     boolean isSprintBtnJustClicked = false;
@@ -69,11 +69,21 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
     // touchpad
     public TouchPad touchpad;
 
+    // only for debugging proccess
+    CameraInputController cameraInputController;
+    boolean isCameraDebugging = false;
+    Label FPSCounter;
+
     @Override
     public void create() {
         // Create Sprite and a Stage
         batch = new SpriteBatch();
         stage = new Stage(new ScreenViewport(), batch);
+        FPSCounter = new Label("FPS Counter" , new Label.LabelStyle(new BitmapFont() , Color.BLACK));
+        FPSCounter.setFontScale(2);
+        FPSCounter.setPosition(20 , 100);
+        stage.addActor(FPSCounter);
+        
 
         playerController = new PlayerController();
 
@@ -84,7 +94,7 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
         sceneAsset = new GLTFLoader().load(Gdx.files.internal("models/Worker_Male.gltf"));
         playerScene = new Scene(sceneAsset.scene);
 
-        // create scene
+        
 
         PBRShaderConfig config = PBRShaderProvider.createDefaultConfig();
         config.numBones = 128;
@@ -99,20 +109,26 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
                         );
 
         playerScene.modelInstance.transform.scale(2, 2, 2);
+        playerScene.modelInstance.transform.translate(250 , 0 , 250);
         playerScene.modelInstance.transform.rotate(Vector3.Y, 180f);
 
         sceneManager.addScene(playerScene);
 
-        camera = new PerspectiveCamera(60f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera = new PerspectiveCamera(67f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.near = 1f;
-        camera.far = 1000f;
+        camera.far = 300f;
         sceneManager.setCamera(camera);
-        camera.position.set(0, 5f, 4f);
+        camera.position.set(0, 100f, 0);
 
         // Gdx.input.setCursorCatched(true);
         // Gdx.input.setInputProcessor(this);
 
+        cameraInputController = new CameraInputController(camera);
+        cameraInputController.pinchZoomFactor = 200;
+        cameraInputController.scrollFactor = 100;
+
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
+        if (isCameraDebugging) inputMultiplexer.addProcessor(cameraInputController);
         inputMultiplexer.addProcessor(stage);
         Gdx.input.setInputProcessor(inputMultiplexer);
 
@@ -142,7 +158,10 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
         skybox = new SceneSkybox(environmentCubemap);
         sceneManager.setSkyBox(skybox);
         playerController.createContoller(this);
-        buildBoxes();
+        createTerrain();
+        rocksAndTreesGenerator = new RocksAndTrees();
+        rocksAndTreesGenerator.populateTrees(sceneManager , terrain);
+        
     }
 
     @Override
@@ -154,10 +173,13 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
     public void render() {
         float deltaTime = Gdx.graphics.getDeltaTime();
         time += deltaTime;
+        FPSCounter.setText("FPS : " + Gdx.graphics.getFramesPerSecond());
 
-        playerController.processInput(deltaTime);
+        if (!isCameraDebugging) {
+            playerController.processInput(deltaTime);
 
-        playerController.updateCamera();
+            playerController.updateCamera();
+        }
 
         // render
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
@@ -168,42 +190,30 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
         stage.draw();
 
         if (isJumping) {
-            playerScene.animationController.animate("Jump",0.5f);
+            playerScene.animationController.animate("Jump", 0.5f);
         } else if (sprinting) {
             playerScene.animationController.animate("Run", 0.5f);
-        } else if(isWalking) {
-        	playerScene.animationController.animate("Walk" ,0.5f);
-        }else if(isPlayerInCrouchPosition) {
-        	playerScene.animationController.animate("SitDown" , 0.5f);
-        }
-        
-       
-        else {
+        } else if (isWalking) {
+            playerScene.animationController.animate("Walk", 0.5f);
+        } else if (isPlayerInCrouchPosition) {
+            playerScene.animationController.animate("SitDown", 0.5f);
+        } else {
             playerScene.animationController.animate("Idle", -1);
         }
     }
 
-    private void buildBoxes() {
-        ModelBuilder modelBuilder = new ModelBuilder();
-        modelBuilder.begin();
-
-        for (int x = -100; x < 100; x += 10) {
-            for (int z = -100; z < 100; z += 10) {
-                Material material = new Material();
-
-                material.set(PBRColorAttribute.createBaseColorFactor(Color.RED));
-                MeshPartBuilder builder =
-                        modelBuilder.part(
-                                x + ", " + z,
-                                GL20.GL_TRIANGLES,
-                                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                                material);
-                BoxShapeBuilder.build(builder, x, 0, z, 1f, 1f, 1f);
-            }
+    private void createTerrain() {
+        if (terrain != null) {
+            terrain.dispose();
+            sceneManager.removeScene(terrainScene);
         }
 
-        ModelInstance model = new ModelInstance(modelBuilder.end());
-        sceneManager.addScene(new Scene(model));
+        terrain =
+                new HeightMapTerrain(
+                        new Pixmap(Gdx.files.internal("textures/heightmap.png")),
+                        50f);
+        terrainScene = new Scene(terrain.getModelInstance());
+        sceneManager.addScene(terrainScene);
     }
 
     @Override
@@ -215,11 +225,6 @@ public class MyGame extends ApplicationAdapter implements AnimationController.An
         specularCubemap.dispose();
         brdfLUT.dispose();
         skybox.dispose();
+        terrain.dispose();
     }
-
-    @Override
-    public void onEnd(AnimationController.AnimationDesc animation) {}
-
-    @Override
-    public void onLoop(AnimationController.AnimationDesc animation) {}
 }
