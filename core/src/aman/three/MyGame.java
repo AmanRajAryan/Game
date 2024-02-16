@@ -164,12 +164,12 @@ public class MyGame extends ApplicationAdapter {
                 new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
         sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
         sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
-        sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, 0f , 0f , 1f , 1f));
+        sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, 0.7f , 0.7f , 0.7f , 1f));
     //    sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 200, 1));
 
         // setup skybox
         skybox = new SceneSkybox(environmentCubemap);
-        sceneManager.setSkyBox(skybox);
+       // sceneManager.setSkyBox(skybox);
         playerController.createContoller(this);
         createTerrain();
 
@@ -196,6 +196,7 @@ public class MyGame extends ApplicationAdapter {
 
         // render
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        Gdx.gl20.glClearColor(0.7f ,0.7f ,0.7f ,1);
 
         modelBatch.begin(camera);
         modelBatch.render(terrainRenderable);
