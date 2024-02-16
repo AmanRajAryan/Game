@@ -66,6 +66,8 @@ public class PlayerController {
     Label isJumpingLabel = new Label("Label", lableStyle);
     Label playerYLabel = new Label("Label", lableStyle);
     Label jumpHeightLabel = new Label("Label", lableStyle);
+    Label currentPosX = new Label("Label", lableStyle);
+    Label currentPosZ = new Label("Label", lableStyle);
 
     public void createContoller(MyGame game) {
         this.mainGameClass = game;
@@ -73,13 +75,22 @@ public class PlayerController {
         camera = mainGameClass.camera;
         playerScene = mainGameClass.playerScene;
         touchpad = mainGameClass.touchpad;
+
+        currentPosX.setFontScale(2);
+        currentPosX.setPosition(30, 680);
+        stage.addActor(currentPosX);
+
+        currentPosZ.setFontScale(2);
+        currentPosZ.setPosition(30, 650);
+        stage.addActor(currentPosZ);
+
         isJumpingLabel.setFontScale(2);
         isJumpingLabel.setPosition(30, 680);
-        stage.addActor(isJumpingLabel);
+        // stage.addActor(isJumpingLabel);
 
         playerYLabel.setFontScale(2);
         playerYLabel.setPosition(30, 650);
-        stage.addActor(playerYLabel);
+        //   stage.addActor(playerYLabel);
 
         jumpHeightLabel.setFontScale(2);
         jumpHeightLabel.setPosition(30, 620);
@@ -283,11 +294,7 @@ public class PlayerController {
         // Update vector position
         playerScene.modelInstance.transform.getTranslation(currentPosition);
 
-        
-            height =
-                    getGroundOrTerrainYPositionAtPlayerLocation(
-                            currentPosition.x, currentPosition.z);
-        
+        height = getGroundOrTerrainYPositionAtPlayerLocation(currentPosition.x, currentPosition.z);
 
         if (!mainGameClass.isJumping) {
 
@@ -318,6 +325,10 @@ public class PlayerController {
                 }
             }
         }
+        
+        
+        currentPosX.setText("CurrentPosX : " + currentPosition.x);
+        currentPosZ.setText("CurrentPosZ : " + currentPosition.z);
     }
 
     public void updateCamera() {

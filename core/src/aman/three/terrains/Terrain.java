@@ -2,6 +2,7 @@ package aman.three.terrains;
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 
+import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.utils.Disposable;
 
 public abstract class Terrain implements Disposable {
@@ -19,11 +20,19 @@ public abstract class Terrain implements Disposable {
      */
     protected float heightMagnitude;
 
-    protected ModelInstance modelInstance;
+    protected Renderable ground;
+
+    public Renderable getRenderable() {
+        return ground;
+    }
+    
+    
+    protected ModelInstance groundModelInstance;
 
     public ModelInstance getModelInstance() {
-        return modelInstance;
+        return groundModelInstance;
     }
+    
 
     public abstract float getHeightAtWorldCoord(float worldX, float worldZ);
 }

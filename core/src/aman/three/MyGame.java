@@ -1,6 +1,5 @@
 package aman.three;
 
-
 import aman.three.Environment.RocksAndTrees;
 import aman.three.terrains.HeightMapTerrain;
 import aman.three.terrains.Terrain;
@@ -11,6 +10,10 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.RenderableProvider;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.shaders.DepthShader;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Vector3;
@@ -19,6 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import net.mgsx.gltf.loaders.gltf.GLTFLoader;
+import net.mgsx.gltf.scene3d.attributes.FogAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute;
 import net.mgsx.gltf.scene3d.lights.DirectionalLightEx;
@@ -44,6 +48,7 @@ public class MyGame extends ApplicationAdapter {
     private DirectionalLightEx light;
     Terrain terrain;
     Scene terrainScene;
+    Renderable terrainRenderable;
     RocksAndTrees rocksAndTreesGenerator;
 
     // Player Movement
@@ -59,6 +64,7 @@ public class MyGame extends ApplicationAdapter {
     PlayerController playerController;
 
     // Stage & batch
+    ModelBatch modelBatch;
     Batch batch;
     Stage stage;
 
@@ -79,11 +85,12 @@ public class MyGame extends ApplicationAdapter {
         // Create Sprite and a Stage
         batch = new SpriteBatch();
         stage = new Stage(new ScreenViewport(), batch);
-        FPSCounter = new Label("FPS Counter" , new Label.LabelStyle(new BitmapFont() , Color.BLACK));
+        modelBatch = new ModelBatch();
+
+        FPSCounter = new Label("FPS Counter", new Label.LabelStyle(new BitmapFont(), Color.BLACK));
         FPSCounter.setFontScale(2);
-        FPSCounter.setPosition(20 , 100);
+        FPSCounter.setPosition(20, 100);
         stage.addActor(FPSCounter);
-        
 
         playerController = new PlayerController();
 
@@ -93,8 +100,6 @@ public class MyGame extends ApplicationAdapter {
         // create scene
         sceneAsset = new GLTFLoader().load(Gdx.files.internal("models/Worker_Male.gltf"));
         playerScene = new Scene(sceneAsset.scene);
-
-        
 
         PBRShaderConfig config = PBRShaderProvider.createDefaultConfig();
         config.numBones = 128;
@@ -109,7 +114,7 @@ public class MyGame extends ApplicationAdapter {
                         );
 
         playerScene.modelInstance.transform.scale(2, 2, 2);
-        playerScene.modelInstance.transform.translate(250 , 0 , 250);
+        playerScene.modelInstance.transform.translate(250, 0, 250);
         playerScene.modelInstance.transform.rotate(Vector3.Y, 180f);
 
         sceneManager.addScene(playerScene);
@@ -117,6 +122,7 @@ public class MyGame extends ApplicationAdapter {
         camera = new PerspectiveCamera(67f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.near = 1f;
         camera.far = 300f;
+
         sceneManager.setCamera(camera);
         camera.position.set(0, 100f, 0);
 
@@ -153,15 +159,17 @@ public class MyGame extends ApplicationAdapter {
                 new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
         sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
         sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
+        sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, Color.WHITE));
+        sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 100, 1));
 
         // setup skybox
         skybox = new SceneSkybox(environmentCubemap);
         sceneManager.setSkyBox(skybox);
         playerController.createContoller(this);
         createTerrain();
+
         rocksAndTreesGenerator = new RocksAndTrees();
-        rocksAndTreesGenerator.populateTrees(sceneManager , terrain);
-        
+        rocksAndTreesGenerator.populateTrees(sceneManager, terrain);
     }
 
     @Override
@@ -183,6 +191,11 @@ public class MyGame extends ApplicationAdapter {
 
         // render
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+        modelBatch.begin(camera);
+        modelBatch.render(terrainRenderable);
+        modelBatch.end();
+
         sceneManager.update(deltaTime);
         sceneManager.render();
 
@@ -204,11 +217,10 @@ public class MyGame extends ApplicationAdapter {
 
     private void createTerrain() {
         terrain =
-                new HeightMapTerrain(
-                        new Pixmap(Gdx.files.internal("textures/heightmap.png")),
-                        50f);
-        terrainScene = new Scene(terrain.getModelInstance());
-        sceneManager.addScene(terrainScene);
+                new HeightMapTerrain(new Pixmap(Gdx.files.internal("textures/heightmap.png")), 50f);
+        terrainRenderable = terrain.getRenderable();
+        //                terrainScene = new Scene(terrain.getModelInstance());
+        //                sceneManager.addScene(terrainScene);
     }
 
     @Override

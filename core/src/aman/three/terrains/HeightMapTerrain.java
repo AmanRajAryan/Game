@@ -6,19 +6,21 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
+
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector2;
 import net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute;
-
 
 public class HeightMapTerrain extends Terrain {
     private static final Vector3 c00 = new Vector3();
     private static final Vector3 c01 = new Vector3();
     private static final Vector3 c10 = new Vector3();
     private static final Vector3 c11 = new Vector3();
-
 
     private final HeightField field;
 
@@ -27,9 +29,14 @@ public class HeightMapTerrain extends Terrain {
         this.width = data.getWidth();
         this.heightMagnitude = magnitude;
 
-        
-        
-        field = new HeightField(true, data, true, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+        field =
+                new HeightField(
+                        true,
+                        data,
+                        true,
+                        VertexAttributes.Usage.Position
+                                | VertexAttributes.Usage.Normal
+                                | VertexAttributes.Usage.TextureCoordinates);
         data.dispose();
         field.corner00.set(0, 0, 0);
         field.corner10.set(size, 0, 0);
@@ -37,33 +44,44 @@ public class HeightMapTerrain extends Terrain {
         field.corner11.set(size, 0, size);
         field.magnitude.set(0f, magnitude, 0f);
         field.update();
-        
-        
 
         Texture texture = new Texture(Gdx.files.internal("textures/leafy_grass_diff_1k.jpg"), true);
         texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
-        PBRTextureAttribute textureAttribute = PBRTextureAttribute.createBaseColorTexture(texture);
+        TextureAttribute textureAttribute = TextureAttribute.createDiffuse(texture);
+        textureAttribute.scaleU = 50f;
+        textureAttribute.scaleV = 50f;
+
+        ground = new Renderable();
+        ground.meshPart.mesh = field.mesh;
+        ground.meshPart.primitiveType = GL20.GL_TRIANGLES;
+        ground.meshPart.offset = 0;
+        ground.meshPart.size = field.mesh.getNumIndices();
+        ground.meshPart.update();
+        ground.material = new Material(textureAttribute);
+
+        
+        PBRTextureAttribute PbrTextureAttribute = PBRTextureAttribute.createBaseColorTexture(texture);
         textureAttribute.scaleU = 50f;
         textureAttribute.scaleV = 50f ;
 
         Material material = new Material();
-        material.set(textureAttribute);
+        material.set(PbrTextureAttribute);
 
         ModelBuilder mb = new ModelBuilder();
         mb.begin();
         mb.part("terrain", field.mesh, GL20.GL_TRIANGLES, material);
-        modelInstance = new ModelInstance(mb.end());
+        groundModelInstance = new ModelInstance(mb.end());
+
+
     }
-    
-    
-    
-    
-     @Override
+
+    @Override
     public float getHeightAtWorldCoord(float worldX, float worldZ) {
         // Convert world coordinates to a position relative to the terrain
-        modelInstance.transform.getTranslation(c00);
+        ground.worldTransform.getTranslation(c00);
+
         float terrainX = worldX - c00.x;
         float terrainZ = worldZ - c00.z;
 
@@ -86,17 +104,19 @@ public class HeightMapTerrain extends Terrain {
         // Determine the triangle we are on and apply barrycentric.
         float height;
         if (xCoord <= (1 - zCoord)) { // Upper left triangle
-            height = barryCentric(
-                    c00.set(0, field.data[gridZ * width + gridX], 0),
-                    c10.set(1, field.data[gridZ * width + (gridX + 1)], 0),
-                    c01.set(0, field.data[(gridZ + 1) * width + gridX], 1),
-                    new Vector2(xCoord, zCoord));
+            height =
+                    barryCentric(
+                            c00.set(0, field.data[gridZ * width + gridX], 0),
+                            c10.set(1, field.data[gridZ * width + (gridX + 1)], 0),
+                            c01.set(0, field.data[(gridZ + 1) * width + gridX], 1),
+                            new Vector2(xCoord, zCoord));
         } else {
-            height =  barryCentric(
-                    c10.set(1, field.data[gridZ * width + (gridX + 1)], 0),
-                    c11.set(1, field.data[(gridZ + 1) * width + (gridX + 1)], 1),
-                    c01.set(0, field.data[(gridZ + 1) * width + gridX], 1),
-                    new Vector2(xCoord, zCoord));
+            height =
+                    barryCentric(
+                            c10.set(1, field.data[gridZ * width + (gridX + 1)], 0),
+                            c11.set(1, field.data[(gridZ + 1) * width + (gridX + 1)], 1),
+                            c01.set(0, field.data[(gridZ + 1) * width + gridX], 1),
+                            new Vector2(xCoord, zCoord));
         }
 
         return height * heightMagnitude;
@@ -109,9 +129,6 @@ public class HeightMapTerrain extends Terrain {
         float l3 = 1.0f - l1 - l2;
         return l1 * p1.y + l2 * p2.y + l3 * p3.y;
     }
-    
-    
-    
 
     @Override
     public void dispose() {
