@@ -5,12 +5,16 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector2;
@@ -54,17 +58,29 @@ public class HeightMapTerrain extends Terrain {
         textureAttribute.scaleV = 50f;
 
         ground = new Renderable();
+        Environment environment = new Environment();
+        
+        DirectionalLight light = new DirectionalLight();
+        light.direction.set(1, -3, 1).nor();
+        light.color.set(Color.WHITE);
+
+        environment.add(light);
+        environment.set(new ColorAttribute(ColorAttribute.Fog, 10f, 10f, 10f, 60f));
+        
+        
+
         ground.meshPart.mesh = field.mesh;
         ground.meshPart.primitiveType = GL20.GL_TRIANGLES;
         ground.meshPart.offset = 0;
         ground.meshPart.size = field.mesh.getNumIndices();
+        ground.environment = environment;
         ground.meshPart.update();
         ground.material = new Material(textureAttribute);
 
-        
-        PBRTextureAttribute PbrTextureAttribute = PBRTextureAttribute.createBaseColorTexture(texture);
+        PBRTextureAttribute PbrTextureAttribute =
+                PBRTextureAttribute.createBaseColorTexture(texture);
         textureAttribute.scaleU = 50f;
-        textureAttribute.scaleV = 50f ;
+        textureAttribute.scaleV = 50f;
 
         Material material = new Material();
         material.set(PbrTextureAttribute);
@@ -73,8 +89,6 @@ public class HeightMapTerrain extends Terrain {
         mb.begin();
         mb.part("terrain", field.mesh, GL20.GL_TRIANGLES, material);
         groundModelInstance = new ModelInstance(mb.end());
-
-
     }
 
     @Override

@@ -10,12 +10,17 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.shaders.DepthShader;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -159,14 +164,16 @@ public class MyGame extends ApplicationAdapter {
                 new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
         sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
         sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
-        sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, Color.WHITE));
-        sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 100, 1));
+       sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, Color.WHITE));
+        sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 200, 1));
 
         // setup skybox
         skybox = new SceneSkybox(environmentCubemap);
         sceneManager.setSkyBox(skybox);
         playerController.createContoller(this);
         createTerrain();
+
+        
 
         rocksAndTreesGenerator = new RocksAndTrees();
         rocksAndTreesGenerator.populateTrees(sceneManager, terrain);
