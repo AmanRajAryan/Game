@@ -125,7 +125,7 @@ public class MyGame extends ApplicationAdapter {
         sceneManager.addScene(playerScene);
 
         camera = new PerspectiveCamera(67f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.near = 1f;
+        camera.near = 0.1f;
         camera.far = 300f;
 
         sceneManager.setCamera(camera);
@@ -164,16 +164,14 @@ public class MyGame extends ApplicationAdapter {
                 new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
         sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
         sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
-       sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, Color.WHITE));
-        sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 200, 1));
+        sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, 0f , 0f , 1f , 1f));
+    //    sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 200, 1));
 
         // setup skybox
         skybox = new SceneSkybox(environmentCubemap);
         sceneManager.setSkyBox(skybox);
         playerController.createContoller(this);
         createTerrain();
-
-        
 
         rocksAndTreesGenerator = new RocksAndTrees();
         rocksAndTreesGenerator.populateTrees(sceneManager, terrain);
