@@ -65,7 +65,7 @@ public class HeightMapTerrain extends Terrain {
         light.color.set(Color.WHITE);
 
         environment.add(light);
-        environment.set(new ColorAttribute(ColorAttribute.Fog, 10f, 10f, 10f, 60f));
+        environment.set(new ColorAttribute(ColorAttribute.Fog, 0f, 0f, 1f, 1f));
         
         
 
