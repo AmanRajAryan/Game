@@ -45,6 +45,7 @@ public class MyGame extends ApplicationAdapter {
     public Scene playerScene;
     public PerspectiveCamera camera;
     private Cubemap diffuseCubemap;
+    
     private Cubemap environmentCubemap;
     private Cubemap specularCubemap;
     private Texture brdfLUT;
@@ -84,6 +85,7 @@ public class MyGame extends ApplicationAdapter {
     CameraInputController cameraInputController;
     boolean isCameraDebugging = false;
     Label FPSCounter;
+    boolean fogEnabled = true;
 
     @Override
     public void create() {
@@ -126,7 +128,8 @@ public class MyGame extends ApplicationAdapter {
 
         camera = new PerspectiveCamera(67f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.near = 0.1f;
-        camera.far = 300f;
+        if (fogEnabled) camera.far = 300f;
+        else camera.far = 1200f;
 
         sceneManager.setCamera(camera);
         camera.position.set(0, 100f, 0);
@@ -164,12 +167,13 @@ public class MyGame extends ApplicationAdapter {
                 new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
         sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
         sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
-        sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, 0.7f , 0.7f , 0.7f , 1f));
-    //    sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 200, 1));
+        sceneManager.environment.set(new ColorAttribute(ColorAttribute.Fog, 0.7f, 0.7f, 0.7f, 1f));
+        // sceneManager.environment.set(new FogAttribute(FogAttribute.FogEquation).set(10, 200, 1));
 
         // setup skybox
         skybox = new SceneSkybox(environmentCubemap);
-       // sceneManager.setSkyBox(skybox);
+        if (!fogEnabled) sceneManager.setSkyBox(skybox);
+
         playerController.createContoller(this);
         createTerrain();
 
@@ -195,8 +199,8 @@ public class MyGame extends ApplicationAdapter {
         }
 
         // render
+        Gdx.gl20.glClearColor(0.7f, 0.7f, 0.7f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-        Gdx.gl20.glClearColor(0.7f ,0.7f ,0.7f ,1);
 
         modelBatch.begin(camera);
         modelBatch.render(terrainRenderable);
