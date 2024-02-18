@@ -15,11 +15,9 @@ public class AndroidLauncher extends AndroidApplication {
 		super.onCreate(savedInstanceState);
         getWindow().getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
+        config.useGL30 = true;
 		initialize(new MyGame(), config);
         
 	}
     
-    public void nakeToast(String messafe) {
-    	Toast.makeText(getApplicationContext() , messafe , 0).show();
-    }
 }

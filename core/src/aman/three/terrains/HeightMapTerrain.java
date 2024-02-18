@@ -77,13 +77,9 @@ public class HeightMapTerrain extends Terrain {
         ground.meshPart.update();
         ground.material = new Material(textureAttribute);
 
-        PBRTextureAttribute PbrTextureAttribute =
-                PBRTextureAttribute.createBaseColorTexture(texture);
-        textureAttribute.scaleU = 50f;
-        textureAttribute.scaleV = 50f;
 
         Material material = new Material();
-        material.set(PbrTextureAttribute);
+        material.set(textureAttribute);
 
         ModelBuilder mb = new ModelBuilder();
         mb.begin();

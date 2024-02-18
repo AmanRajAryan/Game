@@ -35,26 +35,27 @@ import net.mgsx.gltf.scene3d.scene.Scene;
 import net.mgsx.gltf.scene3d.scene.SceneAsset;
 import net.mgsx.gltf.scene3d.scene.SceneManager;
 import net.mgsx.gltf.scene3d.scene.SceneSkybox;
+import net.mgsx.gltf.scene3d.shaders.PBRDepthShader;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 import net.mgsx.gltf.scene3d.utils.IBLBuilder;
 
 public class MyGame extends ApplicationAdapter {
-    private SceneManager sceneManager;
+    public SceneManager sceneManager;
     private SceneAsset sceneAsset;
     public Scene playerScene;
     public PerspectiveCamera camera;
     private Cubemap diffuseCubemap;
-    
+
     private Cubemap environmentCubemap;
     private Cubemap specularCubemap;
     private Texture brdfLUT;
     private float time;
     private SceneSkybox skybox;
     private DirectionalLightEx light;
-    Terrain terrain;
+    public Terrain terrain;
     Scene terrainScene;
-    Renderable terrainRenderable;
+    public Renderable terrainRenderable;
     RocksAndTrees rocksAndTreesGenerator;
 
     // Player Movement
@@ -70,9 +71,11 @@ public class MyGame extends ApplicationAdapter {
     PlayerController playerController;
 
     // Stage & batch
-    ModelBatch modelBatch;
+    public ModelBatch modelBatch;
     Batch batch;
     Stage stage;
+    
+    
 
     // HUD
     // HUD
@@ -81,11 +84,11 @@ public class MyGame extends ApplicationAdapter {
     // touchpad
     public TouchPad touchpad;
 
-    // only for debugging proccess
+    // only for debugging purposes
     CameraInputController cameraInputController;
     boolean isCameraDebugging = false;
     Label FPSCounter;
-    boolean fogEnabled = true;
+    boolean fogEnabled = false;
 
     @Override
     public void create() {
@@ -109,26 +112,26 @@ public class MyGame extends ApplicationAdapter {
         playerScene = new Scene(sceneAsset.scene);
 
         PBRShaderConfig config = PBRShaderProvider.createDefaultConfig();
-        config.numBones = 128;
+        config.numBones = 70;
+        config.numDirectionalLights = 1;
+        config.numPointLights = 0;
 
-        DepthShader.Config depthConfig = PBRShaderProvider.createDefaultDepthConfig();
-        depthConfig.numBones = 128;
+        PBRDepthShader.Config depthConfig = PBRShaderProvider.createDefaultDepthConfig();
+        depthConfig.numBones = 70;
 
         sceneManager =
                 new SceneManager(
-                        //     new PBRShaderProvider(config), new
-                        // PBRDepthShaderProvider(depthConfig)
-                        );
+                        new MyPBRShaderProvider(config), new MyPBRDepthShaderProvider(depthConfig));
 
         playerScene.modelInstance.transform.scale(2, 2, 2);
-        playerScene.modelInstance.transform.translate(250, 0, 250);
+        playerScene.modelInstance.transform.translate(25, 0, 250);
         playerScene.modelInstance.transform.rotate(Vector3.Y, 180f);
 
         sceneManager.addScene(playerScene);
 
         camera = new PerspectiveCamera(67f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.near = 0.1f;
-        if (fogEnabled) camera.far = 300f;
+        if (fogEnabled) camera.far = 200f;
         else camera.far = 1200f;
 
         sceneManager.setCamera(camera);
@@ -178,7 +181,7 @@ public class MyGame extends ApplicationAdapter {
         createTerrain();
 
         rocksAndTreesGenerator = new RocksAndTrees();
-        rocksAndTreesGenerator.populateTrees(sceneManager, terrain);
+        rocksAndTreesGenerator.populateTrees(this , modelBatch);
     }
 
     @Override
